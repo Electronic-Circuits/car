@@ -35,31 +35,79 @@
 
   <h1>Robot Car Controller</h1>
 
-  <video id="video" autoplay></video>
+  <video id="video" autoplay playsinline></video><br>
+  <button onclick="switchCamera()">🔄 Switch Camera</button><br>
+  <button onclick="connectBluetooth()">🔗 Connect Bluetooth</button>
 
   <div class="buttons">
     <button onclick="sendCommand('F')">Forward</button>
     <button onclick="sendCommand('B')">Reverse</button><br>
     <button onclick="sendCommand('L')">Left</button>
     <button onclick="sendCommand('R')">Right</button>
+    <button onclick="sendCommand('S')">Stop</button>
   </div>
 
   <script>
-    // Access Mobile Camera
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        document.getElementById('video').srcObject = stream;
-      })
-      .catch(err => {
-        alert('Camera Access Denied: ' + err);
-      });
+    let currentStream;
+    let useFrontCamera = true;
+    let bluetoothCharacteristic;
 
-    // Send Bluetooth Command
-    function sendCommand(command) {
-      console.log('Command sent:', command);
-      // Here you will add Bluetooth send command logic
-      // For example: bluetooth.send(command);
+    const video = document.getElementById('video');
+
+    // 📷 Start Camera
+    async function startCamera() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+      try {
+        const constraints = {
+          video: {
+            facingMode: useFrontCamera ? 'user' : 'environment'
+          }
+        };
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = currentStream;
+      } catch (err) {
+        alert('Camera Error: ' + err);
+      }
     }
+
+    // 🔄 Switch Camera
+    function switchCamera() {
+      useFrontCamera = !useFrontCamera;
+      startCamera();
+    }
+
+    // 🔗 Bluetooth Connect
+    async function connectBluetooth() {
+      try {
+        const device = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [0x1101]
+        });
+        const server = await device.gatt.connect();
+        const service = await server.getPrimaryService(0x1101);
+        const characteristics = await service.getCharacteristics();
+        bluetoothCharacteristic = characteristics[0];
+        alert('✅ Bluetooth Connected!');
+      } catch (error) {
+        alert('❌ Bluetooth Connection Failed: ' + error);
+      }
+    }
+
+    // 🚗 Send Command
+    async function sendCommand(command) {
+      console.log('Command:', command);
+      if (bluetoothCharacteristic) {
+        const data = new TextEncoder().encode(command);
+        await bluetoothCharacteristic.writeValue(data);
+      } else {
+        alert('Bluetooth not connected!');
+      }
+    }
+
+    // Auto start camera on load
+    startCamera();
   </script>
 
 </body>
