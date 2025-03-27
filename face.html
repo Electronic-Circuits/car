@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Robot Car Controller</title>
+  <style>
+    body {
+      text-align: center;
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    video {
+      margin-top: 10px;
+      width: 90%;
+      max-width: 400px;
+      border: 2px solid #333;
+      border-radius: 10px;
+    }
+    .buttons {
+      margin-top: 20px;
+    }
+    button {
+      margin: 10px;
+      padding: 15px 25px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Robot Car Controller</h1>
+
+  <video id="video" autoplay></video>
+
+  <div class="buttons">
+    <button onclick="sendCommand('F')">Forward</button>
+    <button onclick="sendCommand('B')">Reverse</button><br>
+    <button onclick="sendCommand('L')">Left</button>
+    <button onclick="sendCommand('R')">Right</button>
+  </div>
+
+  <script>
+    // Access Mobile Camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        document.getElementById('video').srcObject = stream;
+      })
+      .catch(err => {
+        alert('Camera Access Denied: ' + err);
+      });
+
+    // Send Bluetooth Command
+    function sendCommand(command) {
+      console.log('Command sent:', command);
+      // Here you will add Bluetooth send command logic
+      // For example: bluetooth.send(command);
+    }
+  </script>
+
+</body>
+</html>
